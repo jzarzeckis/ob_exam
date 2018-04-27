@@ -1,29 +1,29 @@
 import { get } from "axios";
 
-class Page {
-  constructor(app, template) {
-    this.app = app;
-    this.template = template;
-  }
-  render() {
-    this.app.rootElement.innerHTML = this.template;
-    this.setup(this.app.rootElement.innerHTML);
-  }
-  setup() {}
-}
+import { InitTest } from "./InitTest";
+
+import { Page } from "./Page";
+import { ActionContract } from "./ActionContract";
 
 class Reg extends Page {
   setup(body) {
-
+    let button = body.querySelector(".proceed");
+    button.onclick = (e) => {
+      e.preventDefault();
+      this.gp("reg_data");
+    }
   }
 }
 
-class InitTest extends Page {
+class RegData extends Page {
+  setup(body) {
+    let button = body.querySelector(".signin");
 
-}
-
-class ActionContract extends Page {
-
+    button.onclick = (e) => {
+      e.preventDefault();
+      this.gp("init_test");
+    }
+  }
 }
 
 class Video extends Page {
@@ -36,20 +36,18 @@ class StatusPage extends Page {
 
 export class App {
   constructor() {
-    this.rootElement = document.getElementById("root")
-
-    
-
+    this.rootElement = document.getElementById("root");
   }
 
   init() {
     const pageKeys = [
       "reg",
+      "reg_data",
       "init_test",
       "action_contract",
       "video",
       "status"
-    ]
+    ];
 
     return Promise.all(pageKeys.map(p => {
       return get(`templates/${p}.html`).then(data => {
@@ -57,6 +55,9 @@ export class App {
         switch (p) {
           case "reg":
             instance = new Reg(this, data.data);
+            break;
+          case "reg_data":
+            instance = new RegData(this, data.data);
             break;
           case "init_test":
             instance = new InitTest(this, data.data);
@@ -87,7 +88,12 @@ export class App {
 
       this.pages = res;
 
-      this.pages.reg.render();
+      if (window.location.hash && this.pages[window.location.hash.slice(1)]) {
+        this.pages[window.location.hash.slice(1)].render();
+      } else {
+        this.pages.reg.render();
+      }
+      this.rootElement.classList.add("visible");
 
       return res;
     });
